@@ -25,7 +25,12 @@ expected_hash = hashlib.sha256(f"{EXPECTED_USER}:{EXPECTED_PASS}".encode()).hexd
 
 # Firma JWT con PS256
 def sign_jwt(payload: dict) -> str:
-    private_key = os.getenv("SIGNING_KEY").encode()  # PEM formato
+    raw_key = os.getenv("SIGNING_KEY")
+    if not raw_key:
+        raise RuntimeError("SIGNING_KEY env var is not set")
+
+    private_key = raw_key.replace("\\n", "\n").encode()
+    
     headers = {
         "kid": "e-IbAW-iMyUnBrk3V-298AlSa1Q=",
         "typ": "JWT",
