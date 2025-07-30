@@ -9,7 +9,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import hashlib
 from dotenv import load_dotenv
 import jwt  # pyjwt
-from jwt import algorithms
+from jwt import algorithms, DecodeError
 
 app = FastAPI()
 
@@ -77,8 +77,8 @@ async def validate_and_redirect(request: Request):
         raise HTTPException(status_code=403, detail="Invalid security_hash")
 
     try:
-        unverified = jwt.get_unverified_claims(oAuthUrl)
-    except JWTError:
+        unverified = jwt.decode(oAuthUrl, options={"verify_signature": False})
+    except DecodeError:
         raise HTTPException(status_code=400, detail="Invalid oAuthUrl token")
 
     # Crear nuevo JWT firmado
