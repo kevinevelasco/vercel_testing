@@ -8,6 +8,8 @@ from jose import jwt, JWTError
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import hashlib
 from dotenv import load_dotenv
+import jwt  # pyjwt
+from jwt import algorithms
 
 app = FastAPI()
 
@@ -23,17 +25,19 @@ expected_hash = hashlib.sha256(f"{EXPECTED_USER}:{EXPECTED_PASS}".encode()).hexd
 
 # Firma JWT con PS256
 def sign_jwt(payload: dict) -> str:
-    private_key = os.getenv("SIGNING_KEY")
-    if not private_key:
-        raise RuntimeError("SIGNING_KEY env var is not set")
-
+    private_key = os.getenv("SIGNING_KEY").encode()  # PEM formato
     headers = {
         "kid": "e-IbAW-iMyUnBrk3V-298AlSa1Q=",
         "typ": "JWT",
         "alg": "PS256"
     }
 
-    return jwt.encode(claims=payload, key=private_key, algorithm="PS256", headers=headers)
+    return jwt.encode(
+        payload,
+        key=private_key,
+        algorithm="PS256",
+        headers=headers
+    )
 
 # Simula un request como el tuyo con redirecciones
 def follow_redirects(url: str):
