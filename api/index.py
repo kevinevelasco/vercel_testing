@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 import os
-
+from mangum import Mangum  # 👈 Esto es lo que hace la integración con Vercel lambda
 app = FastAPI()
 
 @app.get("/")
@@ -28,3 +28,4 @@ async def read_root(request: Request):
         "decoded_oauth": payload,
         "security_hash": security_hash
     })
+handler = Mangum(app) 
