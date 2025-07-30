@@ -6,18 +6,19 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+import hashlib
 
 app = FastAPI()
 
 # MOCKS
-MOCK_USERNAME = "OB_DP_Rappi"
-MOCK_PASSWORD = "OB_DP_Rappi_12345"
+EXPECTED_USER = "OB_DP_Rappi"
+EXPECTED_PASS = "OB_DP_Rappi_12345"
 
 # Simulación simple de hash (puedes cambiar por hash real con HMAC/sha256 si quieres)
 def generate_mock_hash(username, password):
     return f"hash_with_{username}_{password}"
 
-EXPECTED_HASH = generate_mock_hash(MOCK_USERNAME, MOCK_PASSWORD)
+expected_hash = hashlib.sha256(f"{EXPECTED_USER}:{EXPECTED_PASS}".encode()).hexdigest()
 
 # Firma JWT con PS256
 def sign_jwt(payload: dict) -> str:
@@ -66,7 +67,7 @@ async def validate_and_redirect(request: Request):
 
     if not security_hash:
         raise HTTPException(status_code=401, detail="Missing security_hash")
-    if security_hash != EXPECTED_HASH:
+    if security_hash != expected_hash:
         raise HTTPException(status_code=403, detail="Invalid security_hash")
 
     try:
