@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import hashlib
+from dotenv import load_dotenv
 
 app = FastAPI()
 
@@ -22,7 +23,7 @@ expected_hash = hashlib.sha256(f"{EXPECTED_USER}:{EXPECTED_PASS}".encode()).hexd
 
 # Firma JWT con PS256
 def sign_jwt(payload: dict) -> str:
-    private_key = os.environ.get("SIGNING_KEY")
+    private_key = os.getenv("SIGNING_KEY")
     if not private_key:
         raise RuntimeError("SIGNING_KEY env var is not set")
 
@@ -61,6 +62,7 @@ def follow_redirects(url: str):
 
 @app.get("/")
 async def validate_and_redirect(request: Request):
+    load_dotenv()
     params = dict(request.query_params)
     security_hash = params.get("security_hash")
     oAuthUrl = params.get("oAuthUrl")
