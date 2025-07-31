@@ -131,10 +131,10 @@ async def validate_and_redirect(request: Request):
     final_url = f"https://auth.stage.redebanopenfinance.com/{new_payload['bank_id']}/authorization.sca.oauth2?oAuthUrl={signed_jwt}"
 
     print("\n🚀 Iniciando request a endpoint final con redirecciones:")
-    follow_redirects(final_url)
+    final_destination = follow_redirects(final_url)
 
     return JSONResponse(content={
         "message": "Final request made",
-        "final_url": final_url,
+        "final_url": final_destination,
         "new_token": signed_jwt
     })
