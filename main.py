@@ -10,6 +10,10 @@ import hashlib
 from dotenv import load_dotenv
 import jwt  # pyjwt
 from jwt import algorithms, DecodeError
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
+
 
 app = FastAPI()
 
@@ -25,24 +29,40 @@ expected_hash = hashlib.sha256(f"{EXPECTED_USER}:{EXPECTED_PASS}".encode()).hexd
 
 # Firma JWT con PS256
 def sign_jwt(payload: dict) -> str:
-    raw_key = os.getenv("SIGNING_KEY")
-    if not raw_key:
-        raise RuntimeError("SIGNING_KEY env var is not set")
-
-    private_key = raw_key.replace("\\n", "\n").encode()
+    p12_password = os.getenv("KEYSTORE_PASSWORD")
+    if not p12_password:
+        raise RuntimeError("KEYSTORE_PASSWORD env var is not set")
     
+    with open("keystore.p12", "rb") as p12_file:
+        p12_data = p12_file.read()
+
+    private_key, certificate, additional_certificates = load_key_and_certificates(
+        p12_data,
+        p12_password.encode(),  # contraseña del .p12
+        backend=default_backend()
+    )
+
+    # Convertimos a bytes en formato PEM
+    pem_key_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
     headers = {
         "kid": "e-IbAW-iMyUnBrk3V-298AlSa1Q=",
         "typ": "JWT",
         "alg": "PS256"
     }
 
-    return jwt.encode(
+    token = jwt.encode(
         payload,
-        key=private_key,
+        key=pem_key_bytes,
         algorithm="PS256",
         headers=headers
     )
+
+    return token
 
 # Simula un request como el tuyo con redirecciones
 def follow_redirects(url: str):
