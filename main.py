@@ -65,7 +65,7 @@ def sign_jwt(payload: dict) -> str:
     return token
 
 # Simula un request como el tuyo con redirecciones
-def follow_redirects(url: str):
+def follow_redirects(url: str) -> str:
     session = requests.Session()
     current_url = url
     history = []
@@ -88,6 +88,8 @@ def follow_redirects(url: str):
             print("📄 HTML Final:")
             print(response.text[:1000])
             break
+
+    return current_url  # <-- Esta línea es la clave
 
 @app.get("/")
 async def validate_and_redirect(request: Request):
